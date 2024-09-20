@@ -23,6 +23,13 @@ const App = () => {
         });
     }, []);
 
+    const addItem = (item) => {
+        listRef.push({
+            text: item,
+            completed: false
+        });
+    };
+
     const handleItemSelect = (item) => {
         setSelectedItem(item);
         const db = firebase.database();
