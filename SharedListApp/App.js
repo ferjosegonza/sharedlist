@@ -3,7 +3,7 @@ import { View, FlatList, TouchableOpacity, Text, TextInput } from 'react-native'
 import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/auth';
-import firebaseConfig from './firebaseConfig';
+import firebaseConfig from './firebase/firebaseConfig';
 import { login, register, logout } from './Auth';
 
 firebase.initializeApp(firebaseConfig);
@@ -19,11 +19,15 @@ const App = () => {
         const listRef = db.ref('lists').child('sharedList');
 
         listRef.on('value', (snapshot) => {
-        setList(snapshot.val());
+            const data = snapshot.val();
+            const formattedList = data ? Object.keys(data).map((key) => ({ id: key, ...data[key] })) : [];
+            setList(formattedList);
         });
     }, []);
 
     const addItem = (item) => {
+        const db = firebase.database(firebaseConfig.projectId);
+        const listRef = db.ref('lists').child('sharedList');
         listRef.push({
             text: item,
             completed: false
@@ -31,10 +35,8 @@ const App = () => {
     };
 
     const handleItemSelect = (item) => {
-        setSelectedItem(item);
         const db = firebase.database();
         const listRef = db.ref('lists').child('sharedList');
-
         listRef.child(item.id).remove();
     };
 
@@ -67,9 +69,10 @@ const App = () => {
             {user ? (
                 <FlatList
                     data={list}
+                    keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                     <TouchableOpacity onPress={() => handleItemSelect(item)}>
-                        <Text>{item.name}</Text>
+                        <Text>{item.text}</Text>
                     </TouchableOpacity>
                     )}
                 />
